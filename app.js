@@ -4,9 +4,9 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-const instrumentosRouter = require('./routes/instrumentosMusicales');
+var indexRouter = require('./src/routes/index');
+var usersRouter = require('./src/routes/users');
+const instrumentosRouter = require('./src/routes/instrumentosMusicales');
 
 
 var app = express();
