@@ -7,18 +7,6 @@ var arregloInstrumento =[
 
 var camposRequeridos = ['nombre','marca','clasificacion','precio','descripcion'];
 
-function busacarInstrumento(id){
-  var instrumento;
-  for (let i = 0; i < arregloInstrumento.length; i++) {
-    if(id == arregloInstrumento[i].id) {
-      instrumento = arregloInstrumento[i];
-      index = i;
-      break; 
-    }
-  }
-  return instrumento;
-}
-
 function validarCamposInstruento(instrumento,error){
   var error= false;
   var mensaje="";
@@ -41,22 +29,12 @@ function validarCamposInstruento(instrumento,error){
   if(error){
     jsonValidacion={
       mensaje: "error, el objeto no es valido. " + mensaje,
-      status: error
+      status: 400
     };
   }
   return jsonValidacion;
 }
 
-function isEmpty(obj) {
-  for(var key in obj) {
-      if(obj.hasOwnProperty(key))
-          return false;
-  }
-  return true;
-}
-
-
-  /* GET users listing. */
 const getAll = (req, res, next) =>{
     res.status(200)
     res.json(arregloInstrumento);
@@ -64,8 +42,8 @@ const getAll = (req, res, next) =>{
 
 const getOne = (req, res, next) => {
     const { params } = req
-    var instrumento = busacarInstrumento(params.id);
-    if(isEmpty(instrumento)) {
+    var instrumento = arregloInstrumento.find(element => element.id == params.id);
+    if(instrumento == null) {
         // does not exist
         res.status(404)
         res.json({
@@ -80,15 +58,23 @@ const getOne = (req, res, next) => {
     }
 }
 
+//---------------------CREATE---------------------------------
 const create =  (req,res,next) => {
     const { body } = req;
-    var jsonValidacion = validarCamposInstruento(body,400);
-    if( !isEmpty(jsonValidacion)){
-      res.status(400).json(jsonValidacion);
+    var jsonValidacion = validarCamposInstruento(body,400)
+    console.log("ASDFADFASDFASDFASDFASDFASDF" + jsonValidacion);
+    if( (typeof(jsonValidacion)=== 'object')){
+      res.status(400)
+      res.json(jsonValidacion);
     }else{
-        body["id"] = arregloInstrumento[arregloInstrumento.length-1].id + 1;
+        if(arregloInstrumento.length == 0){
+            body["id"] = 1;
+        }else{
+            body["id"] = arregloInstrumento[arregloInstrumento.length-1].id + 1;
+        }
         arregloInstrumento.push(body);
-        res.status(201).json({
+        res.status(201)
+        res.json({
           mensaje: "Se agrego correctamente el instrumento",
           nombre : body.nombre,
           id : body.id
@@ -100,30 +86,33 @@ const update = (req, res, next) => {
     index = 0 ;
     const { params } = req;
     const { body } = req;  
-    var instrumento = busacarInstrumento(params.id);
-    if(isEmpty(instrumento)) {
+    var instrumento = arregloInstrumento.find(element => element.id == params.id);
+    if(instrumento == null) {
       // does not exist
-      res.status(404).json({
+      res.status(404)
+      res.json({
         mensaje: "error, el objeto no existe",
         status: 404
       });
     }
     var jsonValidacion = validarCamposInstruento(body,400);
-    if( !isEmpty(jsonValidacion)){
-      res.status(400).json(jsonValidacion);
+    if( (typeof(jsonValidacion)=== 'object') ){
+      res.status(400)
+      res.json(jsonValidacion);
     }else{
       body["id"] = arregloInstrumento[index].id;
       arregloInstrumento[index] = body;
-      res.status(204).json(body)
+      res.status(204)
     }
 }
 
 const deleteOne =  (req, res, next) => {
     index = 0 ;
     const { params } = req
-    var instrumento = busacarInstrumento(params.id);
-    if(isEmpty(instrumento)) {
-      res.status(404).json({
+    var instrumento = arregloInstrumento.find(element => element.id == params.id);
+    if(instrumento == null) {
+      res.status(404)
+      res.json({
         mensaje: "error, el objeto no existe",
         status: 404
       });
@@ -131,11 +120,13 @@ const deleteOne =  (req, res, next) => {
     else {
       // does exist
       arregloInstrumento.splice(index,1)
-      res.status(204).json({
+      res.status(204)
+      res.json({
         mensaje: "operación completada exitosamente, se elimino el objeto " + params.nombre,
         status: 204
       });
     }   
+    
 }
 
 module.exports = {
