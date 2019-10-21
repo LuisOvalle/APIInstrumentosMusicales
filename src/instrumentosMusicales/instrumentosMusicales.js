@@ -1,4 +1,5 @@
 var index;
+var mongoose = require('mongoose');
 
 var arregloInstrumento =[
   {id: 1, nombre: 'Piano', marca: 'Yamaha', clasificacion: 'de teclado', precio: 10000, descripcion: 'Piano clasico eléctrico P-45'},
