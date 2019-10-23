@@ -1,10 +1,13 @@
 var index;
-var mongoose = require('mongoose');
 
 var arregloInstrumento =[
   {id: 1, nombre: 'Piano', marca: 'Yamaha', clasificacion: 'de teclado', precio: 10000, descripcion: 'Piano clasico eléctrico P-45'},
   {id: 2, nombre: 'Guitarra Electrica', marca: 'Fender', clasificacion: 'de cuerda', precio: 2000, descripcion: 'Guitarra electro acustica  FA-125CE'}    
 ]
+
+var mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost:27017/MusicalInstrumentsdatabase');
+var InstrumentoMusicalModel = require('../models/instrumentoMusicalModel');
 
 var camposRequeridos = ['nombre','marca','clasificacion','precio','descripcion'];
 
@@ -37,97 +40,142 @@ function validarCamposInstruento(instrumento,error){
 }
 
 const getAll = (req, res, next) =>{
-    res.status(200)
-    res.json(arregloInstrumento);
+  InstrumentoMusicalModel.find({}, function(err, resInstrumentosMusicales) {
+    if (!err){
+      res.status(200)
+      res.json(resInstrumentosMusicales);
+    } 
+  });
 }
 
 const getOne = (req, res, next) => {
-    const { params } = req
-    var instrumento = arregloInstrumento.find(element => element.id == params.id);
-    if(instrumento == null) {
-        // does not exist
-        res.status(404)
-        res.json({
-          mensaje: "error, el objeto no existe",
-          status: 404
-        });
-    }
-    else {
-        // does exist
-        res.status(200)
-        res.json(instrumento);
-    }
-}
-
-//---------------------CREATE---------------------------------
-const create =  (req,res,next) => {
-    const { body } = req;
-    var jsonValidacion = validarCamposInstruento(body,400)
-    console.log("ASDFADFASDFASDFASDFASDFASDF" + jsonValidacion);
-    if( (typeof(jsonValidacion)=== 'object')){
-      res.status(400)
-      res.json(jsonValidacion);
-    }else{
-        if(arregloInstrumento.length == 0){
-            body["id"] = 1;
-        }else{
-            body["id"] = arregloInstrumento[arregloInstrumento.length-1].id + 1;
-        }
-        arregloInstrumento.push(body);
-        res.status(201)
-        res.json({
-          mensaje: "Se agrego correctamente el instrumento",
-          nombre : body.nombre,
-          id : body.id
-        })
-    }
-}
-
-const update = (req, res, next) => {
-    index = 0 ;
-    const { params } = req;
-    const { body } = req;  
-    var instrumento = arregloInstrumento.find(element => element.id == params.id);
-    if(instrumento == null) {
+  const { params } = req
+  InstrumentoMusicalModel.find({ id: params.id }, function(err, resInstrumentoMusical) {
+    if (err){
       // does not exist
       res.status(404)
       res.json({
         mensaje: "error, el objeto no existe",
         status: 404
       });
-    }
-    var jsonValidacion = validarCamposInstruento(body,400);
-    if( (typeof(jsonValidacion)=== 'object') ){
-      res.status(400)
-      res.json(jsonValidacion);
     }else{
-      body["id"] = arregloInstrumento[index].id;
-      arregloInstrumento[index] = body;
-      res.status(204)
-    }
-}
-
-const deleteOne =  (req, res, next) => {
-    index = 0 ;
-    const { params } = req
-    var instrumento = arregloInstrumento.find(element => element.id == params.id);
-    if(instrumento == null) {
-      res.status(404)
+      // does exist
+      if(resInstrumentoMusical.length>0){
+        res.status(200)
+        res.json(resInstrumentoMusical);
+      }else{
+        res.status(404)
       res.json({
         mensaje: "error, el objeto no existe",
         status: 404
       });
+      }
+      
     }
-    else {
-      // does exist
-      arregloInstrumento.splice(index,1)
-      res.status(204)
-      res.json({
-        mensaje: "operación completada exitosamente, se elimino el objeto " + params.nombre,
-        status: 204
-      });
-    }   
-    
+  });
+}
+
+function saveInDB(body){
+  var nuevoInstrumento = InstrumentoMusicalModel({
+    id: body.id,
+    nombre: body.nombre,
+    marca: body.marca,
+    clasificacion: body.clasificacion,
+    precio: body.precio,
+    descripcion: body.descripcion
+  });
+
+  // save the user
+  nuevoInstrumento.save(function(err) {
+    return err;
+  });
+} 
+
+const create =  (req,res,next) => {
+  const { body } = req;
+  var jsonValidacion = validarCamposInstruento(body,400)
+  if( (typeof(jsonValidacion)=== 'object')){
+    res.status(400)
+    res.json(jsonValidacion);
+  }else{
+    InstrumentoMusicalModel.count({}, function( err, count){
+      if(count == 0){
+        body["id"] = 1;
+        err = saveInDB(body);
+      }else{
+        InstrumentoMusicalModel.findOne({})
+        .sort('-id')  // give me the max
+        .exec(function (err, resInstrumentoMusical) {
+          body["id"] = resInstrumentoMusical.id + 1;
+          err = saveInDB(body);
+        });
+      }
+      if (!err){
+        res.status(201)
+        res.json({
+          mensaje: "Se agrego correctamente el instrumento",
+          nombre : body.nombre,
+          id : body.id
+        })
+      } 
+    })
+  }
+}
+
+const update = (req, res, next) => {
+  const { params } = req;
+  const { body } = req;  
+  var jsonValidacion = validarCamposInstruento(body,400);
+  if( (typeof(jsonValidacion)=== 'object') ){
+    res.status(400)
+    res.json(jsonValidacion);
+  }else{
+    InstrumentoMusicalModel.findOneAndUpdate({ id: params.id }, body, function(err, instrumento) {
+      console.log(instrumento);
+      if(!instrumento) {
+        // does not exist
+        res.status(404)
+        res.json({
+          mensaje: "error, el objeto no existe",
+          status: 404
+        });
+      } else{
+        res.status(204);
+        res.json({
+          mensaje: "operación completada exitosamente, se modificó" + params.nombre,
+          status: 204
+        });
+      }
+    });
+  }
+}
+
+const deleteOne =  (req, res, next) => {
+  const { params } = req
+  InstrumentoMusicalModel.findOneAndRemove({ id: params.id }, function(err, item) {
+      if (!err){
+        // does exist
+        if(!item){
+          res.status(404)
+          res.json({
+          mensaje: "error, el objeto no existe",
+          status: 404
+        });
+        }else{
+          res.status(204)
+          res.json({
+            mensaje: "operación completada exitosamente, se elimino el objeto " + params.nombre,
+            status: 204
+          });
+        }
+      }else{
+        res.status(404)
+        res.json({
+          mensaje: "error, el objeto no existe",
+          status: 404
+        });
+      }
+    });
 }
 
 module.exports = {

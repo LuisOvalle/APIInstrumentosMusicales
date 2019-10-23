@@ -38,3 +38,12 @@ Update:
 
 Delete:
     http://localhost:3000/api/v1/instrumentosMusicales/2
+
+
+dev:
+npm run monitor
+
+
+test:
+npm test
+npm run coverage
