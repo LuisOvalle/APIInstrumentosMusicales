@@ -132,7 +132,7 @@ describe('User Manager', () => {
     }).catch(() => {})
     
   })  
-  /*
+  
 //----------------------------CREATE
   it('will insert the first one musical instrument succesfully', async() => {
     await borrarValoresPrueba()
@@ -193,7 +193,7 @@ describe('User Manager', () => {
             id: 3
         })
     })
-  })*/
+  })
 
   it('won\'t insert one  musical instrument, missing a key and not the correct number of keys',async () => {
     await borrarValoresPrueba()
