@@ -11,7 +11,17 @@ var InstrumentoMusicalModel = require('../models/instrumentoMusicalModel');
 
 var camposRequeridos = ['nombre','marca','clasificacion','precio','descripcion'];
 
-function validarCamposInstruento(instrumento,error){
+function borrarValoresPrueba(){
+  InstrumentoMusicalModel.collection.drop()
+}
+
+function borrarEInsertarValoresPrueba(){
+  InstrumentoMusicalModel.collection.drop()
+  InstrumentoMusicalModel.insertMany([{id: 1, nombre: 'Piano', marca: 'Yamaha', clasificacion: 'de teclado', precio: 10000, descripcion: 'Piano clasico eléctrico P-45'},
+    {id: 2, nombre: 'Guitarra Electrica', marca: 'Fender', clasificacion: 'de cuerda', precio: 2000, descripcion: 'Guitarra electro acustica  FA-125CE'}]);
+}
+
+function validarCamposInstruento (instrumento,error){
   var error= false;
   var mensaje="";
   var jsonValidacion;
@@ -39,8 +49,8 @@ function validarCamposInstruento(instrumento,error){
   return jsonValidacion;
 }
 
-const getAll = (req, res, next) =>{
-  InstrumentoMusicalModel.find({}, function(err, resInstrumentosMusicales) {
+const getAll = async (req, res, next) =>{
+  InstrumentoMusicalModel.find({}, {_id:0, __v:0}, function(err, resInstrumentosMusicales) {
     if (!err){
       res.status(200)
       res.json(resInstrumentosMusicales);
@@ -48,9 +58,9 @@ const getAll = (req, res, next) =>{
   });
 }
 
-const getOne = (req, res, next) => {
+const getOne = async (req, res, next) => {
   const { params } = req
-  InstrumentoMusicalModel.find({ id: params.id }, function(err, resInstrumentoMusical) {
+  InstrumentoMusicalModel.find({ id: params.id }, {_id:0, __v:0}, function(err, resInstrumentoMusical) {
     if (err){
       // does not exist
       res.status(404)
@@ -65,10 +75,10 @@ const getOne = (req, res, next) => {
         res.json(resInstrumentoMusical);
       }else{
         res.status(404)
-      res.json({
-        mensaje: "error, el objeto no existe",
-        status: 404
-      });
+        res.json({
+          mensaje: "error, el objeto no existe",
+          status: 404
+        });
       }
       
     }
@@ -91,38 +101,43 @@ function saveInDB(body){
   });
 } 
 
-const create =  (req,res,next) => {
+const create = async (req,res,next) => {
   const { body } = req;
   var jsonValidacion = validarCamposInstruento(body,400)
   if( (typeof(jsonValidacion)=== 'object')){
     res.status(400)
     res.json(jsonValidacion);
   }else{
-    InstrumentoMusicalModel.count({}, function( err, count){
-      if(count == 0){
-        body["id"] = 1;
-        err = saveInDB(body);
-      }else{
-        InstrumentoMusicalModel.findOne({})
-        .sort('-id')  // give me the max
-        .exec(function (err, resInstrumentoMusical) {
-          body["id"] = resInstrumentoMusical.id + 1;
+    try{
+      InstrumentoMusicalModel.count({}, function( err, count){
+        if(count == 0){
+          body["id"] = 1;
           err = saveInDB(body);
-        });
-      }
-      if (!err){
-        res.status(201)
-        res.json({
-          mensaje: "Se agrego correctamente el instrumento",
-          nombre : body.nombre,
-          id : body.id
-        })
-      } 
-    })
+        }else{
+          InstrumentoMusicalModel.findOne({})
+          .sort('-id')  // give me the max
+          .exec(function (err, resInstrumentoMusical) {
+            body["id"] = resInstrumentoMusical.id + 1;
+            err = saveInDB(body);
+          });
+        }
+        if (!err){
+          res.status(201)
+          res.json({
+            mensaje: "Se agrego correctamente el instrumento",
+            nombre : body.nombre,
+            id : body.id
+          })
+        } 
+      })
+    }catch(error){
+      res.status(400)
+      res.json({});
+    }
   }
 }
 
-const update = (req, res, next) => {
+const update = async (req, res, next) => {
   const { params } = req;
   const { body } = req;  
   var jsonValidacion = validarCamposInstruento(body,400);
@@ -131,7 +146,6 @@ const update = (req, res, next) => {
     res.json(jsonValidacion);
   }else{
     InstrumentoMusicalModel.findOneAndUpdate({ id: params.id }, body, function(err, instrumento) {
-      console.log(instrumento);
       if(!instrumento) {
         // does not exist
         res.status(404)
@@ -150,7 +164,7 @@ const update = (req, res, next) => {
   }
 }
 
-const deleteOne =  (req, res, next) => {
+const deleteOne = async (req, res, next) => {
   const { params } = req
   InstrumentoMusicalModel.findOneAndRemove({ id: params.id }, function(err, item) {
       if (!err){
@@ -184,5 +198,7 @@ module.exports = {
     getOne,
     create,
     update,
-    deleteOne
+    deleteOne,
+    borrarEInsertarValoresPrueba,
+    borrarValoresPrueba
 }

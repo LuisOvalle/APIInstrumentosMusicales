@@ -13,12 +13,7 @@ var instrumentoMusicalSchema = new mongooseSchema({
   //updated_at: Date
 });
 
-instrumentoMusicalSchema.methods.dudify = function() {
-    // add some stuff to the users name
-    this.name = this.name + '-dude'; 
-  
-    return this.name;
-  };
+
 
 var instrumentoMusical = mongoose.model('instrumentoMusical', instrumentoMusicalSchema);
 module.exports = instrumentoMusical;
