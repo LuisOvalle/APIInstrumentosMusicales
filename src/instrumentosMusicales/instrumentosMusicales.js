@@ -8,6 +8,9 @@ var arregloInstrumento =[
 var mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost:27017/MusicalInstrumentsdatabase');
 var InstrumentoMusicalModel = require('../models/instrumentoMusicalModel');
+var redis = require('redis');
+var conexionRedis = redis.createClient({host : 'localhost', port : 6379});
+conexionRedis.on('ready',function() {});
 
 var camposRequeridos = ['nombre','marca','clasificacion','precio','descripcion'];
 
@@ -50,37 +53,64 @@ function validarCamposInstruento (instrumento,error){
 }
 
 const getAll = async (req, res, next) =>{
-  InstrumentoMusicalModel.find({}, {_id:0, __v:0}, function(err, resInstrumentosMusicales) {
-    if (!err){
-      res.status(200)
-      res.json(resInstrumentosMusicales);
-    } 
+  var clave = "getAll"
+  conexionRedis.exists(clave, function (err, reply) {
+    if(reply === 1){
+      conexionRedis.get(clave, function(err,reply){
+        jsonRespuesta = JSON.parse(reply)
+        res.status(200)
+        res.json(jsonRespuesta);
+      });
+    }else{
+      InstrumentoMusicalModel.find({}, {_id:0, __v:0}, function(err, resInstrumentosMusicales) {
+        if (!err){
+          var cadenaGuardar = JSON.stringify(resInstrumentosMusicales)
+          conexionRedis.set(clave, cadenaGuardar);
+          conexionRedis.expire(clave, 120);
+          res.status(200)
+          res.json(resInstrumentosMusicales);
+        } 
+      });
+    }
   });
 }
 
 const getOne = async (req, res, next) => {
   const { params } = req
-  InstrumentoMusicalModel.find({ id: params.id }, {_id:0, __v:0}, function(err, resInstrumentoMusical) {
-    if (err){
-      // does not exist
-      res.status(404)
-      res.json({
-        mensaje: "error, el objeto no existe",
-        status: 404
+  var clave = 'getOne'+ params.id
+  conexionRedis.exists(clave, function (err, reply) {
+    if(reply===1){
+      conexionRedis.get(clave, function(err,reply){
+        jsonRespuesta = JSON.parse(reply)
+        res.status(200)
+        res.json(jsonRespuesta);
       });
     }else{
-      // does exist
-      if(resInstrumentoMusical.length>0){
-        res.status(200)
-        res.json(resInstrumentoMusical);
-      }else{
-        res.status(404)
-        res.json({
-          mensaje: "error, el objeto no existe",
-          status: 404
-        });
-      }
-      
+      InstrumentoMusicalModel.find({ id: params.id }, {_id:0, __v:0}, function(err, resInstrumentoMusical) {
+        if (err){
+          // does not exist
+          res.status(404)
+          res.json({
+            mensaje: "error, el objeto no existe",
+            status: 404
+          });
+        }else{
+          // does exist
+          if(resInstrumentoMusical.length>0){
+            conexionRedis.set(clave, JSON.stringify(resInstrumentoMusical))
+            conexionRedis.expire(clave, 300);
+            res.status(200)
+            res.json(resInstrumentoMusical);
+          }else{
+            res.status(404)
+            res.json({
+              mensaje: "error, el objeto no existe",
+              status: 404
+            });
+          }
+          
+        }
+      });
     }
   });
 }

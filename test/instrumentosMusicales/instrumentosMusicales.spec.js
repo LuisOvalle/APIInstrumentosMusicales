@@ -11,52 +11,6 @@ describe('User Manager', () => {
     instrumentosPruebas = []
   })
 
-  //--------------DELETE------------------------------------------------------
-
-  it('will delete one musical instruments succesfully', async() => {
-    await borrarEInsertarValoresPrueba()
-    const sandbox = sinon.sandbox.create()
-    const statusMock = sandbox.stub()
-    const jsonMock = sandbox.stub()
-    const reqMock = {
-        params: {
-          id: 2
-        }
-    }
-    const nextMock = sandbox.stub()
-    const resMock = {
-        status: statusMock,
-        json: jsonMock
-    }
-  
-    await deleteOne(reqMock, resMock, nextMock).then ( () =>{}).catch(() => {
-        sinon.assert.calledWith(statusMock, 204)
-    })
-  })  
-
-  it('won\'t delete one musical instrument because of incorrect id, not in the list', async() => {
-    const sandbox = sinon.sandbox.create()
-    const statusMock = sandbox.stub()
-    const jsonMock = sandbox.stub()
-    const reqMock = {
-        params: {
-          id: 10
-        }
-    }
-    const nextMock = sandbox.stub()
-    const resMock = {
-        status: statusMock,
-        json: jsonMock
-    }
-  
-    await deleteOne(reqMock, resMock, nextMock).then ( () =>{}).catch(() => {
-        sinon.assert.calledWith(statusMock, 404)
-        sinon.assert.calledWith(jsonMock, {
-            "mensaje": "error, el objeto no existe",
-            "status": 404
-        })
-    })
-  })  
   //----------------------READ
   it('will get all the musical instruments', async () => {
     //await borrarEInsertarValoresPrueba().then ( () =>{})
@@ -84,7 +38,6 @@ describe('User Manager', () => {
 
   it('will get one musical instruments succesfully', async() => {
     //borrarEInsertarValoresPrueba();
-    await borrarEInsertarValoresPrueba()
     const sandbox = sinon.sandbox.create()
     const statusMock = sandbox.stub()
     const jsonMock = sandbox.stub()
@@ -109,7 +62,6 @@ describe('User Manager', () => {
   })  
 
   it('won\'t get one musical instrument because of incorrect id, not in the list', async() => {
-    await borrarEInsertarValoresPrueba()
     const sandbox = sinon.sandbox.create()
     const statusMock = sandbox.stub()
     const jsonMock = sandbox.stub()
@@ -144,7 +96,7 @@ describe('User Manager', () => {
                 nombre: "Teclado Eléctrico Blanco",
                 marca: "Yamaha",
                 clasificacion: "de teclado",
-                precio: 9900.20,
+                precio: 9901.20,
                 descripcion: "Teclado eléctrico P-45"
         }
     }
@@ -164,39 +116,9 @@ describe('User Manager', () => {
         })
     })
   }) 
-  
-  it('will insert the second or higher  musical instrument succesfully',async () => {
-    await borrarEInsertarValoresPrueba()
-    const sandbox = sinon.sandbox.create()
-    const statusMock = sandbox.stub()
-    const jsonMock = sandbox.stub()
-    const reqMock = {
-        body:{
-                nombre: "Teclado Eléctrico Blanco",
-                marca: "Yamaha",
-                clasificacion: "de teclado",
-                precio: 9900.20,
-                descripcion: "Teclado eléctrico P-45"
-        }
-    }
-    const nextMock = sandbox.stub()
-    const resMock = {
-        status: statusMock,
-        json: jsonMock
-    }
-  
-    await create(reqMock, resMock, nextMock).then ( () =>{}).catch(() => {
-        sinon.assert.calledWith(statusMock, 201)
-        sinon.assert.calledWith(jsonMock, {
-            mensaje: "Se agrego correctamente el instrumento",
-            nombre: "Teclado Eléctrico Blanco",
-            id: 3
-        })
-    })
-  })
+
 
   it('won\'t insert one  musical instrument, missing a key and not the correct number of keys',async () => {
-    await borrarValoresPrueba()
     const sandbox = sinon.sandbox.create()
     const statusMock = sandbox.stub()
     const jsonMock = sandbox.stub()
@@ -310,7 +232,6 @@ describe('User Manager', () => {
   //--------------UPDATE------------------------------------------------------
 
   it('will update a musical instrument succesfully', async() => {
-    await borrarEInsertarValoresPrueba()
     const sandbox = sinon.sandbox.create()
     const statusMock = sandbox.stub()
     const jsonMock = sandbox.stub()
@@ -427,4 +348,76 @@ describe('User Manager', () => {
     })
   })
   
+  //--------------DELETE------------------------------------------------------
+
+  it('will delete one musical instruments succesfully', async() => {
+    const sandbox = sinon.sandbox.create()
+    const statusMock = sandbox.stub()
+    const jsonMock = sandbox.stub()
+    const reqMock = {
+        params: {
+          id: 1
+        }
+    }
+    const nextMock = sandbox.stub()
+    const resMock = {
+        status: statusMock,
+        json: jsonMock
+    }
+  
+    await deleteOne(reqMock, resMock, nextMock).then ( () =>{
+        sinon.assert.calledWith(statusMock, 204)
+    }).catch(() => {
+    })
+  })  
+
+  it('won\'t delete one musical instrument because of incorrect id, not in the list', async() => {
+    const sandbox = sinon.sandbox.create()
+    const statusMock = sandbox.stub()
+    const jsonMock = sandbox.stub()
+    const reqMock = {
+        params: {
+          id: 10
+        }
+    }
+    const nextMock = sandbox.stub()
+    const resMock = {
+        status: statusMock,
+        json: jsonMock
+    }
+  
+    await deleteOne(reqMock, resMock, nextMock).then ( () =>{
+        sinon.assert.calledWith(statusMock, 404)
+        sinon.assert.calledWith(jsonMock, {
+            "mensaje": "error, el objeto no existe",
+            "status": 404
+        })
+    }).catch(() => {
+    })
+  }) 
+  
+  it('won\'t delete one musical instrument because of incorrect id, not in the list', async() => {
+    const sandbox = sinon.sandbox.create()
+    const statusMock = sandbox.stub()
+    const jsonMock = sandbox.stub()
+    const reqMock = {
+        params: {
+          id: "asdfadf"
+        }
+    }
+    const nextMock = sandbox.stub()
+    const resMock = {
+        status: statusMock,
+        json: jsonMock
+    }
+  
+    await deleteOne(reqMock, resMock, nextMock).then ( () =>{
+        sinon.assert.calledWith(statusMock, 404)
+        sinon.assert.calledWith(jsonMock, {
+            "mensaje": "error, el objeto no existe",
+            "status": 404
+        })
+    }).catch(() => {
+    })
+  })  
 })
