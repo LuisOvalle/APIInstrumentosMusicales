@@ -7,9 +7,12 @@ var logger = require('morgan');
 var indexRouter = require('./src/routes/index');
 var usersRouter = require('./src/routes/users');
 const instrumentosRouter = require('./src/routes/instrumentosMusicales');
-
+const cors = require('cors');
 
 var app = express();
+
+app.use(cors({ origin: 'http://localhost:4200' }));
+app.listen(3000, () => console.log('Server started at port : 3000'));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
