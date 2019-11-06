@@ -6,10 +6,10 @@ var arregloInstrumento =[
 ]
 
 var mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/MusicalInstrumentsdatabase');
+mongoose.connect('mongodb://immongo:27017/MusicalInstrumentsdatabase');
 var InstrumentoMusicalModel = require('../models/instrumentoMusicalModel');
 var redis = require('redis');
-var conexionRedis = redis.createClient({host : 'localhost', port : 6379});
+var conexionRedis = redis.createClient({host : 'imredis', port : 6379});
 conexionRedis.on('ready',function() {});
 
 var camposRequeridos = ['nombre','marca','clasificacion','precio','descripcion'];
