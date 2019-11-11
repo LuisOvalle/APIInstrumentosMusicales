@@ -66,7 +66,7 @@ const getAll = async (req, res, next) =>{
         if (!err){
           var cadenaGuardar = JSON.stringify(resInstrumentosMusicales)
           conexionRedis.set(clave, cadenaGuardar);
-          conexionRedis.expire(clave, 120);
+          conexionRedis.expire(clave, 60);
           res.status(200)
           res.json(resInstrumentosMusicales);
         } 
@@ -98,7 +98,7 @@ const getOne = async (req, res, next) => {
           // does exist
           if(resInstrumentoMusical.length>0){
             conexionRedis.set(clave, JSON.stringify(resInstrumentoMusical))
-            conexionRedis.expire(clave, 300);
+            conexionRedis.expire(clave, 60);
             res.status(200)
             res.json(resInstrumentoMusical);
           }else{
