@@ -10,9 +10,15 @@ mongoose.connect('mongodb://immongo:27017/MusicalInstrumentsdatabase');
 var InstrumentoMusicalModel = require('../models/instrumentoMusicalModel');
 var redis = require('redis');
 var conexionRedis = redis.createClient({host : 'imredis', port : 6379});
-conexionRedis.on('ready',function() {});
+var redisActivo = false;
+conexionRedis.on('ready',function() { console.log('Redis Activo'); redisActivo = true});
+conexionRedis.on('error', function (err){
+  console.log('Redis no esta activo')
+  redisActivo=false;
+})
 
 var camposRequeridos = ['nombre','marca','clasificacion','precio','descripcion'];
+
 
 function borrarValoresPrueba(){
   InstrumentoMusicalModel.collection.drop()
@@ -39,7 +45,7 @@ function validarCamposInstruento (instrumento,error){
       mensaje = mensaje + 'El campo <' + camposRequeridos[i] + '> es obligatorio. ';
     }
   }
-  if(patron.test(instrumento.precio) == false){
+  if(!patron.test(instrumento.precio)){
     error = true;
     mensaje = mensaje + "El precio tiene que ser un numero con dos decimales como máximo y con un punto como separador. ";
   }
@@ -54,65 +60,102 @@ function validarCamposInstruento (instrumento,error){
 
 const getAll = async (req, res, next) =>{
   var clave = "getAll"
-  conexionRedis.exists(clave, function (err, reply) {
-    if(reply === 1){
-      conexionRedis.get(clave, function(err,reply){
-        jsonRespuesta = JSON.parse(reply)
-        res.status(200)
-        res.json(jsonRespuesta);
-      });
-    }else{
-      InstrumentoMusicalModel.find({}, {_id:0, __v:0}, function(err, resInstrumentosMusicales) {
-        if (!err){
-          var cadenaGuardar = JSON.stringify(resInstrumentosMusicales)
-          conexionRedis.set(clave, cadenaGuardar);
-          conexionRedis.expire(clave, 60);
+
+  if(redisActivo){
+    conexionRedis.exists(clave, function (err, reply) {
+      if(reply === 1){
+        conexionRedis.get(clave, function(err,reply){
+          jsonRespuesta = JSON.parse(reply)
           res.status(200)
-          res.json(resInstrumentosMusicales);
-        } 
-      });
-    }
-  });
+          res.json(jsonRespuesta);
+        });
+      }else{
+        InstrumentoMusicalModel.find({}, {_id:0, __v:0}, function(err, resInstrumentosMusicales) {
+          if (!err){
+            var cadenaGuardar = JSON.stringify(resInstrumentosMusicales)
+            conexionRedis.set(clave, cadenaGuardar);
+            conexionRedis.expire(clave, 60);
+            res.status(200)
+            res.json(resInstrumentosMusicales);
+          } 
+        });
+      }
+    });
+  }else{
+    InstrumentoMusicalModel.find({}, {_id:0, __v:0}, function(err, resInstrumentosMusicales) {
+      if (!err){
+        res.status(200)
+        res.json(resInstrumentosMusicales);
+      } 
+    });
+  }
+  
 }
 
 const getOne = async (req, res, next) => {
   const { params } = req
-  var clave = 'getOne'+ params.id
-  conexionRedis.exists(clave, function (err, reply) {
-    if(reply===1){
-      conexionRedis.get(clave, function(err,reply){
-        jsonRespuesta = JSON.parse(reply)
-        res.status(200)
-        res.json(jsonRespuesta);
-      });
-    }else{
-      InstrumentoMusicalModel.find({ id: params.id }, {_id:0, __v:0}, function(err, resInstrumentoMusical) {
-        if (err){
-          // does not exist
-          res.status(404)
-          res.json({
-            mensaje: "error, el objeto no existe",
-            status: 404
-          });
-        }else{
-          // does exist
-          if(resInstrumentoMusical.length>0){
-            conexionRedis.set(clave, JSON.stringify(resInstrumentoMusical))
-            conexionRedis.expire(clave, 60);
-            res.status(200)
-            res.json(resInstrumentoMusical);
-          }else{
+  if(redisActivo){
+    var clave = 'getOne'+ params.id
+    conexionRedis.exists(clave, function (err, reply) {
+      if(reply===1){
+        conexionRedis.get(clave, function(err,reply){
+          jsonRespuesta = JSON.parse(reply)
+          res.status(200)
+          res.json(jsonRespuesta);
+        });
+      }else{
+        InstrumentoMusicalModel.find({ id: params.id }, {_id:0, __v:0}, function(err, resInstrumentoMusical) {
+          if (err){
+            // does not exist
             res.status(404)
             res.json({
               mensaje: "error, el objeto no existe",
               status: 404
             });
+          }else{
+            // does exist
+            if(resInstrumentoMusical.length>0){
+              conexionRedis.set(clave, JSON.stringify(resInstrumentoMusical))
+              conexionRedis.expire(clave, 60);
+              res.status(200)
+              res.json(resInstrumentoMusical);
+            }else{
+              res.status(404)
+              res.json({
+                mensaje: "error, el objeto no existe",
+                status: 404
+              });
+            }
+            
           }
-          
+        });
+      }
+    });
+  }else{
+    InstrumentoMusicalModel.find({ id: params.id }, {_id:0, __v:0}, function(err, resInstrumentoMusical) {
+      if (err){
+        // does not exist
+        res.status(404)
+        res.json({
+          mensaje: "error, el objeto no existe",
+          status: 404
+        });
+      }else{
+        // does exist
+        if(resInstrumentoMusical.length>0){
+          res.status(200)
+          res.json(resInstrumentoMusical);
+        }else{
+          res.status(404)
+          res.json({
+            mensaje: "error, el objeto no existe",
+            status: 404
+          });
         }
-      });
-    }
-  });
+        
+      }
+    });
+  }
 }
 
 function saveInDB(body){
