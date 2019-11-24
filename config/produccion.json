@@ -1,0 +1,15 @@
+{
+    "mongoDB":{
+        "dbConfig":{
+            "host": "immongo.centralus.azurecontainer.io",
+            "port": 27017,
+            "dbName": "MusicalInstrumentsdatabase"
+        }
+    },
+    "redis":{
+        "dbConfig":{
+            "host": "imredis.centralus.azurecontainer.io",
+            "port": 6379
+        }
+    }
+}

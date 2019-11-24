@@ -5,11 +5,15 @@ var arregloInstrumento =[
   {id: 2, nombre: 'Guitarra Electrica', marca: 'Fender', clasificacion: 'de cuerda', precio: 2000, descripcion: 'Guitarra electro acustica  FA-125CE'}    
 ]
 
+const ambiente = requiere('config');
+const ambieteRedis = ambiente.get('redis.dbConfig');
+const ambieteMongo = ambiente.get('mongoDB.dbConfig');
+
 var mongoose = require('mongoose');
-mongoose.connect('mongodb://immongo:27017/MusicalInstrumentsdatabase');
+mongoose.connect('mongodb://' + ambieteMongo.host + ':' + ambieteMongo.port + '/' + ambieteMongo.dbName);
 var InstrumentoMusicalModel = require('../models/instrumentoMusicalModel');
 var redis = require('redis');
-var conexionRedis = redis.createClient({host : 'imredis', port : 6379});
+var conexionRedis = redis.createClient({host : ambieteRedis.host, port : ambieteRedis.port});
 var redisActivo = false;
 conexionRedis.on('ready',function() { console.log('Redis Activo'); redisActivo = true});
 conexionRedis.on('error', function (err){

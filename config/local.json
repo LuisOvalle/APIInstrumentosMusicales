@@ -1,0 +1,15 @@
+{
+    "mongoDB":{
+        "dbConfig":{
+            "host": "immongo",
+            "port": 27017,
+            "dbName": "MusicalInstrumentsdatabase"
+        }
+    },
+    "redis":{
+        "dbConfig":{
+            "host": "imredis",
+            "port": 6379
+        }
+    }
+}
