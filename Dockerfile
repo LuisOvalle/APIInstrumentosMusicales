@@ -1,5 +1,8 @@
 FROM node:10
 
+ARG ambiente=local
+ENV NODE_ENV ${ambiente}
+
 # Create app directory
 WORKDIR /usr/src/app
 
