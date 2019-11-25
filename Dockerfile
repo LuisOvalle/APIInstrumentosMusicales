@@ -1,6 +1,6 @@
 FROM node:10
 
-ARG ambiente=local
+ARG ambiente=production
 ENV NODE_ENV ${ambiente}
 
 # Create app directory

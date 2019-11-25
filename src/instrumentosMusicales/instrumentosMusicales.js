@@ -8,7 +8,7 @@ var arregloInstrumento =[
 const ambiente = require('config');
 const ambieteRedis = ambiente.get('redis.dbConfig');
 const ambieteMongo = ambiente.get('mongoDB.dbConfig');
-
+console.log('NODE_ENV: ' + ambiente.util.getEnv('NODE_ENV'));
 var mongoose = require('mongoose');
 console.log('BASE: ' + 'mongodb://' + ambieteMongo.host + ':' + ambieteMongo.port + '/' + ambieteMongo.dbName);
 mongoose.connect('mongodb://' + ambieteMongo.host + ':' + ambieteMongo.port + '/' + ambieteMongo.dbName);
